@@ -11,11 +11,9 @@ app.use(cors());
 app.use(express.json());
 
 app.get('/', (req, res) => {
-	res.send('Well done!');
+    res.send('Well done!');
 });
 
 app.use('/api/expenses', expenses);
 
-app.listen(4000, () => {
-	console.log('The application is listening on port 3000!');
-});
+app.listen(4000, () => console.log('running'));
