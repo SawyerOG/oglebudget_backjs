@@ -1,6 +1,7 @@
 const { createPool } = require('mysql2');
 
 const prod = process.NODE_ENV === 'production';
+console.log('is prod', prod);
 
 const pool = createPool({
     host: prod ? process.env.dbHostdev : process.env.dbHostprod,
