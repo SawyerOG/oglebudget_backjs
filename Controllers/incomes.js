@@ -2,8 +2,6 @@ const { db } = require('../config/db'),
     { DateTime } = require('luxon');
 
 exports.createIncome = async (req, res) => {
-    console.log(req.body);
-
     const { income, tax, typeID, note, date } = req.body;
 
     try {
@@ -41,6 +39,17 @@ exports.getRecentIncomes = async (req, res) => {
         }
 
         res.status(200).send({ recentIncomes: rows[0], typeIDs, types });
+    } catch (err) {
+        console.error(err);
+    }
+};
+
+exports.deleteIncome = async (req, res) => {
+    const { ID } = req.params;
+
+    try {
+        await db.query(`DELETE FROM incomes WHERE ID = ${ID}`);
+        res.status(200).send();
     } catch (err) {
         console.error(err);
     }
