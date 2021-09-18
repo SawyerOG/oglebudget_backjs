@@ -4,7 +4,7 @@ const prod = process.NODE_ENV === 'production';
 console.log('is prod', prod);
 
 const pool = createPool({
-    host: prod ? process.env.dbHostdev : process.env.dbHostprod,
+    host: prod ? process.env.dbHostdev : process.env.dbHostdev,
     user: process.env.dbUser,
     password: process.env.dbPassword,
     database: process.env.dbDatabase,
