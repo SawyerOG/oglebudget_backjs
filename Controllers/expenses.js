@@ -23,7 +23,7 @@ exports.getRecentExpenses = async (req, res) => {
 				ON expenses.typeID = expense_types.ID
 			LEFT JOIN expense_group
 				ON expenses.groupID = expense_group.ID
-			ORDER BY date DESC
+			ORDER BY expense_group.date DESC
 			LIMIT 10;SELECT MAX(ID) AS 'ID' FROM expense_group; SELECT * FROM expense_types;`
         );
 
@@ -32,30 +32,36 @@ exports.getRecentExpenses = async (req, res) => {
         //Create the obj for expense IDs to group expenses created on the same receipt.
         // console.log(rows);
         const expenseData = {
-            expenses: {},
+            expenses: [],
             maxGroupID: rows[1][0].ID,
             expenseTypes: {},
             // expensesCats: {},
         };
 
+        let curExp = { groupID: 0, expenses: [], expenseTypes: [], total: 0, tax: 0, note: '' };
+
         for (let i = 0; i < rows[0].length; i++) {
             const ref = rows[0][i];
-            const amt = parseFloat(ref.amount);
 
-            if (expenseData.expenses[ref.groupID]) {
-                //Expense that has been handled. Add amount to total and expense to expenses array
-                expenseData.expenses[ref.groupID].expenses.push({ type: ref.type, amount: amt });
-                expenseData.expenses[ref.groupID].expenseTypes.push(ref.type);
-                expenseData.expenses[ref.groupID].total += amt;
+            if (curExp.groupID === ref.groupID) {
+                curExp.expenses.push({ type: ref.type, amount: ref.amount });
+                curExp.expenseTypes.push(ref.type);
+                curExp.total += parseFloat(ref.amount);
             } else {
-                expenseData.expenses[ref.groupID] = {
-                    total: amt + parseFloat(ref.tax),
-                    tax: parseFloat(ref.tax),
-                    date: DateTime.fromJSDate(ref.date).toLocaleString(DateTime.DATETIME_SHORT),
-                    note: ref.note,
-                    expenses: [{ type: ref.type, amount: amt }],
-                    expenseTypes: [ref.type],
-                };
+                //New expense goup
+
+                if (curExp.expenses.length > 0) {
+                    curExp.total = parseFloat(curExp.total.toFixed(2));
+                    expenseData.expenses.push(curExp);
+                    curExp = { groupID: 0, expenses: [], expenseTypes: [], total: 0, tax: 0, note: '' };
+                }
+                curExp.groupID = ref.groupID;
+                curExp.expenses.push({ type: ref.type, amount: ref.amount });
+                curExp.expenseTypes.push(ref.type);
+                curExp.total = parseFloat(ref.amount) + parseFloat(ref.tax);
+                curExp.note = ref.note;
+                curExp.tax = ref.tax;
+                curExp.date = DateTime.fromJSDate(ref.date).toLocaleString(DateTime.DATE_SHORT);
             }
         }
 
@@ -63,21 +69,43 @@ exports.getRecentExpenses = async (req, res) => {
             expenseData.expenseTypes[rows[2][i].type] = rows[2][i].ID;
         }
 
-        // console.log(expenseData);
-        // console.log(expenseData.expenses['1'].expenses);
-
         res.status(200).send(expenseData);
     } catch (err) {
         console.log(err);
     }
 };
 
-exports.create = async (req, res) => {
-    console.log('this route has been hit!');
-    const [rows] = await db.query(`SELECT MAX(ID) FROM expense_group;`);
+exports.createExpense = async (req, res) => {
+    const { date, note, tax, expenses } = req.body;
 
-    console.log(rows);
-    console.log(req.body);
+    const saveDate = DateTime.fromISO(date).toSQLDate();
+    const newDate = DateTime.fromISO(date).toLocaleString();
 
-    res.status(200).send();
+    const insertGroupID = `INSERT INTO expense_group (date, tax, note) VALUES ('${saveDate}', ${tax}, '${note}');`;
+
+    try {
+        const [rows] = await db.query(insertGroupID);
+        const groupID = rows.insertId;
+        const eees = [];
+        for (let i = 0; i < expenses.length; i++) {
+            eees.push(`${expenses[i].amount}, ${expenses[i].typeID}, ${groupID}`);
+        }
+        const insertExpenses = `INSERT INTO expenses (amount, typeID, groupID) VALUES (${eees.join('), (')});`;
+
+        await db.query(insertExpenses);
+        res.status(200).json({ groupID, newDate });
+    } catch (err) {
+        console.error(err);
+    }
+};
+
+exports.deleteExpense = async (req, res) => {
+    const { ID } = req.params;
+
+    try {
+        await db.query(`DELETE FROM expense_group WHERE ID = ${ID}`);
+        res.status(200).send();
+    } catch (err) {
+        console.error(err);
+    }
 };

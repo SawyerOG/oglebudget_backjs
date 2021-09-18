@@ -1,10 +1,12 @@
 const { Router } = require('express'),
-	r = Router();
+    r = Router();
 
-const { create, getRecentExpenses } = require('../Controllers/expenses');
+const { createExpense, getRecentExpenses, deleteExpense } = require('../Controllers/expenses');
 
 r.get('/getRecentExpenses', getRecentExpenses);
 
-r.post('/createExpense', create);
+r.post('/createExpense', createExpense);
+
+r.delete('/delete/:ID', deleteExpense);
 
 module.exports = r;
