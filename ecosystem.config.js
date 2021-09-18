@@ -4,8 +4,13 @@ module.exports = {
             name: 'oglebudget',
             script: './app.js',
             watch: true,
-            env: {
+            env_production: {
                 NODE_ENV: 'production',
+                dbHostprod: '127.0.0.1',
+                dbHostdev: '127.0.0.1',
+                dbUser: 'node',
+                dbPassword: 'so',
+                dbDatabase: 'oglebudget',
             },
         },
     ],
