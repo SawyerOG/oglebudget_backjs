@@ -13,4 +13,15 @@ const pool = createPool({
     multipleStatements: true,
 });
 
+const db = pool.promise();
+
+db.query('SELECT * FROM incomes')
+    .then(([rows]) => {
+        console.log(rows);
+    })
+    .catch((err) => {
+        console.log('error inside');
+        console.log(err);
+    });
+
 exports.db = pool.promise();
