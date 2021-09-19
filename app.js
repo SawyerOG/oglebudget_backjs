@@ -8,7 +8,8 @@ dotenv.config({ path: './.env' });
 
 const expenses = require('./Routes/expenses'),
     incomes = require('./Routes/incomes'),
-    rundown = require('./Routes/monthlyRundown');
+    rundown = require('./Routes/monthlyRundown'),
+    updateCats = require('./Routes/updateCats');
 
 app.use(cors());
 app.use(express.json());
@@ -24,6 +25,7 @@ app.use((req, res, next) => {
 app.use('/api/expenses', expenses);
 app.use('/api/incomes', incomes);
 app.use('/api/rundown', rundown);
+app.use('/api/updateCats', updateCats);
 
 app.use((req, res) => {
     res.sendFile(resolve(resolve(), 'public', 'index.html'));

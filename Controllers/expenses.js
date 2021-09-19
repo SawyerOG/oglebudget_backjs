@@ -18,11 +18,11 @@ exports.getRecentExpenses = async (req, res) => {
 			expense_group.note,
 			expense_types.type,
 			expenses.groupID
-			FROM expenses
+			FROM expense_group
+			LEFT JOIN expenses
+				ON expense_group.ID = expenses.groupID
 			LEFT JOIN expense_types
 				ON expenses.typeID = expense_types.ID
-			LEFT JOIN expense_group
-				ON expenses.groupID = expense_group.ID
 			ORDER BY expense_group.date DESC
 			LIMIT 10;SELECT MAX(ID) AS 'ID' FROM expense_group; SELECT * FROM expense_types;`
         );
