@@ -22,4 +22,13 @@ app.use((req, res) => {
     res.sendFile(resolve(resolve(), 'public', 'index.html'));
 });
 
+app.use((error, req, res, next) => {
+    if (res.headerSent) {
+        return next(error);
+    }
+
+    console.log(error);
+    res.status(error.code || 400).json({ message: error.message || 'An unkown error occured' });
+});
+
 app.listen(4000, () => console.log('running'));
